@@ -33,7 +33,7 @@ class _ListaEjercicios extends StatelessWidget {
       future: providerHoy.getEjercicios(),
       builder: (context, snapshot) {
         if (snapshot.hasError) {
-          return Center(child: Text('Error ${snapshot.error}'));
+          return const WidgetError();
         } else if (!snapshot.hasData) {
           return const Center(child: CircularProgressIndicator());
         }
@@ -42,11 +42,11 @@ class _ListaEjercicios extends StatelessWidget {
 
         return CarouselSlider.builder(
           itemCount: ejercicios.length,
+          options: CarouselOptions(height: mediaQuery.size.height),
           itemBuilder: (_, i, __) {
             return _ElementoEjercicio(ejercicio: ejercicios[i]);
           },
 
-          options: CarouselOptions(height: mediaQuery.size.height),
           carouselController: CarouselSliderController(),
         );
       },
@@ -78,82 +78,102 @@ class _ElementoEjercicio extends StatelessWidget {
           return const Center(child: CircularProgressIndicator());
         }
 
-        final contadorAyer = snapshot.data!;
+        final contadorAyer = snapshot.data ?? 0;
 
         return Container(
           width: mediaQuery.size.width,
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(20),
             color: modoOscuro ? Colors.white12 : Colors.black12,
           ),
-
           margin: const EdgeInsets.all(10),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text(
-                ejercicio.nombre.toUpperCase(),
-                style: TextStyle(
-                  overflow: TextOverflow.ellipsis,
-                  fontSize: Datos.FUENTE_MEDIANA,
-                  color: modoOscuro ? Colors.white : Colors.black,
-                ),
-              ),
-              Text(
-                'Tren ${ejercicio.tipo}',
-                style: const TextStyle(fontSize: Datos.FUENTE_PEQUE),
-              ),
-              TextButton(
-                onPressed: () {},
-                onLongPress: () async {
-                  await providerHoy.resetContador(ejercicio);
-                },
-                child: Text(
-                  '${ejercicio.contador}',
-                  style: TextStyle(
-                    fontSize: Datos.FUENTE_GRANDE,
-                    color:
-                        contadorAyer > ejercicio.contador
-                            ? Datos.COLOR_NEGATIVO
-                            : Datos.COLOR_POSITIVO,
-                  ),
+              Expanded(
+                flex: 25,
+                child: _crearInfoEjercicio(
+                  modoOscuro,
+                  contadorAyer,
+                  providerHoy,
                 ),
               ),
 
-              Text(
-                _getTextConRespectoAAyer(contadorAyer - ejercicio.contador),
-                style: TextStyle(
-                  fontSize: Datos.FUENTE_PEQUE,
-                  color:
-                      contadorAyer > ejercicio.contador
-                          ? Datos.COLOR_NEGATIVO
-                          : Datos.COLOR_POSITIVO,
+              Expanded(
+                flex: 55,
+                child: Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 15),
+                  child: _gifEjercicio(),
                 ),
               ),
 
-              Container(
-                height: 450,
-                margin: const EdgeInsets.all(15),
-                child: _gifEjercicio(),
-              ),
-
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Expanded(
-                    flex: 5,
-                    child: _crearBotones(providerHoy, false, modoOscuro),
-                  ),
-                  Expanded(
-                    flex: 5,
-                    child: _crearBotones(providerHoy, true, modoOscuro),
-                  ),
-                ],
+              Expanded(
+                flex: 20,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Expanded(
+                      flex: 5,
+                      child: _crearBotones(providerHoy, false, modoOscuro),
+                    ),
+                    Expanded(
+                      flex: 5,
+                      child: _crearBotones(providerHoy, true, modoOscuro),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
         );
       },
+    );
+  }
+
+  Widget _crearInfoEjercicio(
+    bool modoOscuro,
+    int contadorAyer,
+    ProviderEjerciciosHoy providerHoy,
+  ) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 10),
+      child: Column(
+        children: [
+          Text(
+            ejercicio.nombre.toUpperCase(),
+            style: TextStyle(
+              overflow: TextOverflow.ellipsis,
+              fontSize: Datos.FUENTE_MEDIANA,
+              color: modoOscuro ? Colors.white : Colors.black,
+            ),
+          ),
+          Text(
+            'Tren ${ejercicio.tipo}',
+            style: const TextStyle(fontSize: Datos.FUENTE_PEQUE),
+          ),
+          Text(
+            '${ejercicio.contador}',
+            style: TextStyle(
+              fontSize: Datos.FUENTE_GRANDE,
+              color:
+                  contadorAyer > ejercicio.contador
+                      ? Datos.COLOR_NEGATIVO
+                      : Datos.COLOR_POSITIVO,
+            ),
+          ),
+
+          Text(
+            _getTextConRespectoAAyer(contadorAyer - ejercicio.contador),
+            style: TextStyle(
+              fontSize: Datos.FUENTE_PEQUE,
+              color:
+                  contadorAyer > ejercicio.contador
+                      ? Datos.COLOR_NEGATIVO
+                      : Datos.COLOR_POSITIVO,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -174,7 +194,7 @@ class _ElementoEjercicio extends StatelessWidget {
 
         if (existe) {
           return ClipRRect(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(20),
             clipBehavior: Clip.hardEdge,
             child: Image.asset(ruta, fit: BoxFit.fill),
           );
@@ -206,7 +226,7 @@ class _ElementoEjercicio extends StatelessWidget {
     final Icon icon = sumar ? Icon(Icons.add) : Icon(Icons.remove);
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 5),
       child: IconButton(
         iconSize: Datos.FUENTE_GRANDE,
         onPressed: () async {

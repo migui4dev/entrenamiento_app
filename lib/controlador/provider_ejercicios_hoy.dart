@@ -30,10 +30,4 @@ class ProviderEjerciciosHoy with ChangeNotifier {
     notifyListeners();
     return num;
   }
-
-  Future<void> resetContador(Ejercicio ejercicio) async {
-    ejercicio.contador = 0;
-    await DBProvider.db.resetContador(ejercicio);
-    notifyListeners();
-  }
 }

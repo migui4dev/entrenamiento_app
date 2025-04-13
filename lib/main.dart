@@ -41,17 +41,24 @@ class _MiAppState extends State<_MiApp> {
 }
 
 class _MiMaterial extends StatefulWidget {
-  _MiMaterial({super.key});
+  _MiMaterial();
 
-  final List<Widget> widgets = [
-    PantallaEjerciciosHoy(),
-    PantallaEjerciciosAyer(),
-    PantallaEjerciciosGlobal(),
-  ];
-  final List<Map<String, dynamic>> nombresEIcons = [
-    {'nombre': 'Hoy', 'icono': Icons.access_time},
-    {'nombre': 'Ayer', 'icono': Icons.history},
-    {'nombre': 'Global', 'icono': Icons.public},
+  final List<Map<String, dynamic>> widgets = [
+    {
+      'nombre': 'Ayer',
+      'icono': Icons.history,
+      'widget': PantallaEjerciciosAyer(),
+    },
+    {
+      'nombre': 'Hoy',
+      'icono': Icons.access_time,
+      'widget': PantallaEjerciciosHoy(),
+    },
+    {
+      'nombre': 'Global',
+      'icono': Icons.public,
+      'widget': PantallaEjerciciosGlobal(),
+    },
   ];
 
   @override
@@ -59,21 +66,22 @@ class _MiMaterial extends StatefulWidget {
 }
 
 class _MiMaterialState extends State<_MiMaterial> {
-  int index = 0;
+  int index = 1;
 
   @override
   Widget build(BuildContext context) {
     final seleccionado = widget.widgets[index];
-    final String nombre = widget.nombresEIcons[index]['nombre'];
+    final String nombre = widget.widgets[index]['nombre'];
 
     return MaterialApp(
-      darkTheme: ThemeData.dark(),
-      theme: ThemeData.light(),
+      themeMode: ThemeMode.system,
+      darkTheme: ThemeData.dark(useMaterial3: true),
+      theme: ThemeData.light(useMaterial3: true),
       debugShowCheckedModeBanner: false,
       routes: getRutas(),
       home: Scaffold(
-        appBar: AppBar(title: Text('Entrenamiento $nombre')),
-        body: seleccionado,
+        appBar: AppBar(title: Text('Entrenamiento ${nombre.toLowerCase()}')),
+        body: seleccionado['widget'],
         bottomNavigationBar: BottomNavigationBar(
           items: _crearItems(),
           selectedItemColor: Datos.COLOR_POR_DEFECTO,
@@ -89,7 +97,7 @@ class _MiMaterialState extends State<_MiMaterial> {
   }
 
   List<BottomNavigationBarItem> _crearItems() {
-    return widget.nombresEIcons
+    return widget.widgets
         .map(
           (e) => BottomNavigationBarItem(
             icon: Icon(e['icono']),

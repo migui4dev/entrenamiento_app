@@ -25,14 +25,19 @@ class DBProvider {
 
   DBProvider._();
 
-  DateTime _getHoy() {
+  String? _hoy, _ayer;
+
+  void _getHoy() {
     final ahora = DateTime.now().toLocal();
-    return DateTime(ahora.year, ahora.month, ahora.day);
+    final hoy = DateTime(ahora.year, ahora.month, ahora.day);
+
+    _hoy = _hoy ?? hoy.toString();
+    _ayer = _ayer ?? hoy.subtract(const Duration(days: 1)).toString();
   }
 
-  DateTime _getAyer() => _getHoy().subtract(const Duration(days: 1));
-
   Future<Database> initDB() async {
+    _getHoy();
+
     return await openDatabase(
       join(await getDatabasesPath(), nombreDB),
       version: versionDB,
@@ -73,14 +78,19 @@ class DBProvider {
       try {
         await db.insert('ejercicios_entrenamiento', {
           'id_ejercicio': int.tryParse('${e['id']}'),
-          'fecha': _getHoy().toString(),
-        });
-        await db.insert('ejercicios_entrenamiento', {
-          'id_ejercicio': int.tryParse('${e['id']}'),
-          'fecha': _getAyer().toString(),
+          'fecha': _hoy,
         });
       } catch (e) {
-        break;
+        print('No se puede añadir registros con fecha $_hoy');
+      }
+
+      try {
+        await db.insert('ejercicios_entrenamiento', {
+          'id_ejercicio': int.tryParse('${e['id']}'),
+          'fecha': _ayer,
+        });
+      } catch (e) {
+        print('No se puede añadir registros con fecha $_ayer');
       }
     }
   }
@@ -106,10 +116,7 @@ class DBProvider {
             final datos2 = await db.query(
               'ejercicios_entrenamiento',
               where: 'id_ejercicio=? and fecha=?',
-              whereArgs: [
-                e.id,
-                (opcion == Datos.HOY ? _getHoy() : _getAyer()).toString(),
-              ],
+              whereArgs: [e.id, (opcion == Datos.HOY ? _hoy : _ayer)],
             );
 
             ejercicios[i].contador =
@@ -145,7 +152,7 @@ class DBProvider {
     final datos = await db.query(
       'ejercicios_entrenamiento',
       where: 'id_ejercicio=? and fecha=?',
-      whereArgs: [id, _getAyer().toString()],
+      whereArgs: [id, _ayer],
     );
 
     return Ejercicio.fromMap(datos.first).contador;
@@ -158,7 +165,7 @@ class DBProvider {
       'ejercicios_entrenamiento',
       {'contador': ++ejercicio.contador},
       where: 'id_ejercicio=? and fecha=?',
-      whereArgs: [ejercicio.id, _getHoy().toString()],
+      whereArgs: [ejercicio.id, _hoy],
     );
   }
 
@@ -169,18 +176,7 @@ class DBProvider {
       'ejercicios_entrenamiento',
       {'contador': --ejercicio.contador},
       where: 'id_ejercicio=? and fecha=?',
-      whereArgs: [ejercicio.id, _getHoy().toString()],
-    );
-  }
-
-  Future<int> resetContador(Ejercicio ejercicio) async {
-    final db = await database;
-
-    return await db.update(
-      'ejercicios_entrenamiento',
-      {'contador': 0},
-      where: 'id_ejercicio=? and fecha=?',
-      whereArgs: [ejercicio.id, _getHoy().toString()],
+      whereArgs: [ejercicio.id, _hoy],
     );
   }
 
